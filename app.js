@@ -3,33 +3,42 @@ const fs = require('fs');
 class Contenedor{
     
     constructor(path){
-        this.path = path;
+        this.path = `./${path}.txt`;
     }
-
-    static id = 1;
 
     save(item){
 
-        /* fs.promises.readFile(this.path,'utf-8')
+        fs.promises.readFile(this.path,'utf-8')
         .then(contenido => {
+            
+            if(contenido == '[]' || contenido == ''){
 
-            if(contenido == '[]'){
-                item.id = Contenedor.id; 
-                let itemStr = JSON.stringify(item,null,2);
-                Contenedor.id++;
+                // Esto se ejecuta cuando el array esta vacio
+
+                item.id = 1; 
+                let arr = [];
+                arr.push(item);
+                let arrStr = JSON.stringify(arr,null,2);
                 
-                fs.promises.writeFile(this.path,itemStr)
+                fs.promises.writeFile(this.path,arrStr)
                 .then( () => {
                     console.log('Guardado con exito') ;
                     console.log(`El id asignado al producto es: ${item.id}`);
                 })
                 .catch( e => 
                     console.log(`Ha ocurrido el siguiente error: ${e}`)
-                );
+                    );
+
             }else{
-                item.id = Contenedor.id;
-                Contenedor.id++;
-                let contenidoObj = JSON.parse(contenido); 
+
+                // Esto se ejecuta cuando el array ya tiene datos
+
+                //codigo para obtener el ultimo Id
+                let contenidoObj = JSON.parse(contenido);
+                let len = contenidoObj.length - 1;
+                let ultimoId = contenidoObj[len].id;
+
+                item.id = ultimoId + 1;
                 contenidoObj.push(item);
                 contenidoObj = JSON.stringify(contenidoObj,null,2);
 
@@ -44,9 +53,24 @@ class Contenedor{
             }
             
         })
-        .catch(e => 
-            console.log(`Ha ocurrido el siguiente error: ${e}`)
-        ); */
+        .catch(e => {
+
+            //Esto se ejecuta cuando el archivo no esta creado o hay un problema con la ruta
+            
+            item.id = 1; 
+            let arr = [];
+            arr.push(item);
+            let arrStr = JSON.stringify(arr,null,2);
+            
+            fs.promises.writeFile(this.path,arrStr)
+            .then( () => {
+                console.log('Guardado con exito') ;
+                console.log(`El id asignado al producto es: ${item.id}`);
+            })
+            .catch( e => 
+                console.log(`Ha ocurrido el siguiente error: ${e}`)
+                );
+        });
 
     }
 
@@ -70,7 +94,7 @@ class Contenedor{
             }
         })
         .catch(e => 
-            console.log(`Ha ocurrido el siguiente error: ${e}`)
+            console.log('El archivo o ruta no existe')
         );
     }
 
@@ -78,11 +102,15 @@ class Contenedor{
 
         fs.promises.readFile(this.path,'utf-8')
         .then(contenido => {
-            let contenidoObj = JSON.parse(contenido);
-            console.log(contenidoObj);
+            if(contenido == '[]' || contenido == ''){
+                console.log('No existen productos para mostrar');
+            }else{
+                let contenidoObj = JSON.parse(contenido);
+                console.log(contenidoObj);
+            }
         })
         .catch(e => 
-            console.log(`Ha ocurrido el siguiente error: ${e}`)
+            console.log('El archivo o ruta no existe')
         );
     }
 
@@ -96,7 +124,7 @@ class Contenedor{
 
             for (let i = 0; i < contenidoObj.length; i++) {
                 if(contenidoObj[i].id == id){
-                    contenidoObj.splice(i);
+                    contenidoObj.splice(i,1);
                     console.log('Producto eliminado correctamente');
                     validacion = true;
                 }
@@ -116,101 +144,30 @@ class Contenedor{
 
             })
         .catch(e => 
-            console.log(`No se ha podido eliminar el producto, error: ${e}`)
+            console.log('El archivo o ruta no existe')
         );
 
     }
 
     deleteAll(){
-        fs.promises.writeFile(this.path,'[]')
-        .then(() => console.log('Todos los productos han sido eliminados correctamente'))
-        .catch( e => 
-            console.log(`Ha ocurrido el siguiente error: ${e}`)
+
+        fs.promises.readFile(this.path,'utf-8')
+        .then(contenido => {
+            if(contenido == '[]' || contenido == ''){
+                console.log('No hay productos para eliminar');
+            }else{
+                fs.promises.writeFile(this.path,'[]')
+                .then(() => console.log('Todos los productos han sido eliminados correctamente'))
+                .catch( e => 
+                    console.log(`Ha ocurrido el siguiente error: ${e}`)
+                );
+            }
+        })
+        .catch(e => 
+            console.log('El archivo o ruta no existe')
         );
     }
     
 }
 
-const prueba = new Contenedor('./productos.txt');
-
-let producto = {
-    foto: 12,
-    nombre: 'juan'
-}
-
-prueba.save(producto);
-prueba.save(producto);
-prueba.save(producto);
-prueba.save(producto);
-prueba.save(producto);
-prueba.save(producto);
-prueba.save(producto);
-prueba.save(producto);
-prueba.save(producto);
-prueba.save(producto);
-prueba.save(producto);
-// prueba.getById(2);
-// prueba.getAll();
-// prueba.deleteById(1);
-// prueba.deleteAll();
-
-/* [
-    {
-        "foto": 12,
-        "nombre": "juan",
-        "id": 1
-    },
-    {
-        "foto": 18,
-        "nombre": "david",
-        "id": 2
-    },
-    {
-        "foto": 34,
-        "nombre": "anto",
-        "id": 3
-    }
-] */ 
-
-
-/* save(item){
-
-    fs.promises.readFile(this.path,'utf-8')
-    .then(contenido => {
-
-        if(contenido == '[]'){
-            item.id = Contenedor.id; 
-            let itemStr = JSON.stringify(item,null,2);
-            Contenedor.id++;
-            
-            fs.promises.writeFile(this.path,itemStr)
-            .then( () => {
-                console.log('Guardado con exito') ;
-                console.log(`El id asignado al producto es: ${item.id}`);
-            })
-            .catch( e => 
-                console.log(`Ha ocurrido el siguiente error: ${e}`)
-            );
-        }else{
-            item.id = Contenedor.id;
-            Contenedor.id++;
-            let contenidoObj = JSON.parse(contenido); 
-            contenidoObj.push(item);
-            contenidoObj = JSON.stringify(contenidoObj,null,2);
-
-            fs.promises.writeFile(this.path,contenidoObj)
-            .then( () => {
-                console.log('Guardado con exito') ;
-                console.log(`El id asignado al producto es: ${item.id}`);
-            })
-            .catch( e => 
-                console.log(`Ha ocurrido el siguiente error: ${e}`)
-            );
-        }
-        
-    })
-    .catch(e => 
-        console.log(`Ha ocurrido el siguiente error: ${e}`)
-    );
-
-} */
+module.exports = Contenedor;
